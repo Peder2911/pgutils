@@ -1,12 +1,21 @@
 
 from contextlib import closing
 import unittest
-from pgutils.context import tempPg
+from pgutils.testing import PgTest 
 
-class TestUtils(unittest.TestCase):
-    def test_temp_db(self):
-        with tempPg(port = 5454) as con:
-            c = con.cursor()
-            c.execute("SELECT version()")
-            ret = c.fetchall()
-        self.assertIsNotNone(ret)
+class TestTest(PgTest):
+    initialization = """
+        CREATE TABLE testtable (x int, y int);
+    """
+
+    def test_db(self):
+        with self.getcursor() as curs:
+            curs.execute("""
+                INSERT INTO testtable VALUES (1,2);
+            """)
+            curs.execute("SELECT * FROM testtable;")
+            x,y = curs.fetchone()
+
+            self.assertEqual(x,1)
+            self.assertEqual(y,2)
+
